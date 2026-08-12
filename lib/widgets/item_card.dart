@@ -99,7 +99,8 @@ class ItemCard extends StatelessWidget {
                         Text('RM ${item.price!.toStringAsFixed(0)}',
                             style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700)),
                       if (item.sizeFeet != null) Text('${item.sizeFeet!.toStringAsFixed(0)} kaki'),
-                      if (item.sizeInch != null) Text('${item.sizeInch!.toStringAsFixed(0)} inci'),
+                      if (item.sizeMaleInch != null) Text('L(M): ${item.sizeMaleInch!.toStringAsFixed(0)}"'),
+                      if (item.sizeFemaleInch != null) Text('L(F): ${item.sizeFemaleInch!.toStringAsFixed(0)}"'),
                     ],
                   ),
                   if (item.description != null && item.description!.isNotEmpty)

@@ -7,7 +7,8 @@ class ItemModel {
   final String? description;
   final double? price;
   final double? sizeFeet;
-  final double? sizeInch;
+  final double? sizeMaleInch;
+  final double? sizeFemaleInch;
   final String? imageUrl;
   final int? quantityTotal;
   final int? quantityAvailable;
@@ -22,7 +23,8 @@ class ItemModel {
     this.description,
     this.price,
     this.sizeFeet,
-    this.sizeInch,
+    this.sizeMaleInch,
+    this.sizeFemaleInch,
     this.imageUrl,
     this.quantityTotal,
     this.quantityAvailable,
@@ -38,7 +40,8 @@ class ItemModel {
         description: map['description'] as String?,
         price: (map['price'] as num?)?.toDouble(),
         sizeFeet: (map['size_feet'] as num?)?.toDouble(),
-        sizeInch: (map['size_inch'] as num?)?.toDouble(),
+        sizeMaleInch: (map['size_male_inch'] as num?)?.toDouble(),
+        sizeFemaleInch: (map['size_female_inch'] as num?)?.toDouble(),
         imageUrl: map['image_url'] as String?,
         quantityTotal: map['quantity_total'] as int?,
         quantityAvailable: map['quantity_available'] as int?,
@@ -53,7 +56,8 @@ class ItemModel {
         'description': description,
         'price': price,
         'size_feet': sizeFeet,
-        'size_inch': sizeInch,
+        'size_male_inch': sizeMaleInch,
+        'size_female_inch': sizeFemaleInch,
         'image_url': imageUrl,
         'quantity_total': quantityTotal,
         'quantity_available': quantityAvailable,
@@ -69,7 +73,8 @@ class ItemModel {
         description: description,
         price: price,
         sizeFeet: sizeFeet,
-        sizeInch: sizeInch,
+        sizeMaleInch: sizeMaleInch,
+        sizeFemaleInch: sizeFemaleInch,
         imageUrl: imageUrl ?? this.imageUrl,
         quantityTotal: quantityTotal,
         quantityAvailable: quantityAvailable,

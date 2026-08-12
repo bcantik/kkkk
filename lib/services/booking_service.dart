@@ -175,6 +175,55 @@ class BookingService {
     await _client.from('bookings').update({'google_event_id': eventId}).eq('id', bookingId);
   }
 
+  // ---- Notes (with optional attached photo) ----
+  Future<List<Map<String, dynamic>>> fetchNotes(String bookingId) async {
+    final rows = await _client
+        .from('notes')
+        .select()
+        .eq('booking_id', bookingId)
+        .order('created_at', ascending: false);
+    return (rows as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<void> addNote({required String bookingId, required String content, String? imageUrl}) async {
+    await _client.from('notes').insert({
+      'booking_id': bookingId,
+      'content': content,
+      'image_url': imageUrl,
+    });
+  }
+
+  Future<void> deleteNote(String noteId) async {
+    await _client.from('notes').delete().eq('id', noteId);
+  }
+
+  // ---- Dashboard drill-down ----
+  // Powers the clickable dashboard stat cards — same underlying query
+  // the KPI counts are based on, so clicking a number shows exactly the
+  // bookings behind it.
+  Future<List<BookingModel>> fetchByDashboardFilter(String filter) async {
+    final now = DateTime.now();
+    switch (filter) {
+      case 'today':
+        return fetchAll(from: DateTime(now.year, now.month, now.day), to: DateTime(now.year, now.month, now.day));
+      case 'month':
+        return fetchAll(from: DateTime(now.year, now.month, 1), to: DateTime(now.year, now.month + 1, 0));
+      case 'pending':
+        final rows = await _client
+            .from('bookings')
+            .select(_bookingSelect)
+            .inFilter('booking_status', ['new_inquiry', 'quotation_sent']).order('wedding_date');
+        return (rows as List).map((r) => BookingModel.fromMap(r)).toList();
+      case 'completed':
+        return fetchAll(statusFilter: 'completed');
+      case 'outstanding':
+        final all = await fetchAll();
+        return all.where((b) => b.outstanding > 0).toList();
+      default:
+        return fetchAll();
+    }
+  }
+
   // ---- Dashboard aggregates ----
   Future<Map<String, dynamic>> dashboardStats() async {
     final today = DateTime.now().toIso8601String().split('T').first;

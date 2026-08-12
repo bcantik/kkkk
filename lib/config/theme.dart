@@ -17,6 +17,13 @@ class AppColors {
   static const eventPayment = Color(0xFFEF6C00);   // orange
   static const eventMeeting = Color(0xFFF9A825);   // yellow
   static const eventOther = Color(0xFF757575);     // grey
+
+  // Booking calendar colors BY EVENT TYPE (tunang/nikah/sanding/etc.)
+  static const eventTunang = Color(0xFFAD1457);      // pink/magenta
+  static const eventNikah = Color(0xFFC62828);       // red
+  static const eventSanding = Color(0xFF1565C0);     // blue
+  static const eventAqiqah = Color(0xFF2E7D32);      // green
+  static const eventMajlisLain = Color(0xFF6D4C41);  // brown
 }
 
 class AppTheme {

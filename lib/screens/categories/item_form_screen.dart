@@ -5,9 +5,9 @@ import '../../services/item_service.dart';
 import '../../widgets/image_upload_widget.dart';
 
 /// Generic Add/Edit dialog — one form implementation shows only the
-/// fields a given [ItemSection] declares (price / size feet / size inch
-/// / description / stock quantity), so every one of the ~50 categories
-/// in the spec gets a correctly-shaped CRUD form for free.
+/// fields a given [ItemSection] declares (price / size feet / size male
+/// & female inch / description / stock quantity), so every one of the
+/// ~50 categories in the spec gets a correctly-shaped CRUD form for free.
 class ItemFormDialog extends StatefulWidget {
   final String pageKey;
   final ItemSection section;
@@ -24,7 +24,9 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   late TextEditingController _title;
   late TextEditingController _description;
   late TextEditingController _price;
-  late TextEditingController _size;
+  late TextEditingController _sizeFeet;
+  late TextEditingController _sizeMale;
+  late TextEditingController _sizeFemale;
   late TextEditingController _quantity;
   String? _subcategory;
   String? _imageUrl;
@@ -37,7 +39,9 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
     _title = TextEditingController(text: e?.title ?? '');
     _description = TextEditingController(text: e?.description ?? '');
     _price = TextEditingController(text: e?.price?.toString() ?? '');
-    _size = TextEditingController(text: (e?.sizeFeet ?? e?.sizeInch)?.toString() ?? '');
+    _sizeFeet = TextEditingController(text: e?.sizeFeet?.toString() ?? '');
+    _sizeMale = TextEditingController(text: e?.sizeMaleInch?.toString() ?? '');
+    _sizeFemale = TextEditingController(text: e?.sizeFemaleInch?.toString() ?? '');
     _quantity = TextEditingController(text: e?.quantityTotal?.toString() ?? '');
     _subcategory = e?.subcategory ?? widget.section.subcategories.firstOrNull;
     _imageUrl = e?.imageUrl;
@@ -55,8 +59,9 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
       title: _title.text.trim(),
       description: widget.section.hasDescription ? _description.text.trim() : null,
       price: widget.section.hasPrice ? double.tryParse(_price.text.trim()) : null,
-      sizeFeet: widget.section.hasSizeFeet ? double.tryParse(_size.text.trim()) : null,
-      sizeInch: widget.section.hasSizeInch ? double.tryParse(_size.text.trim()) : null,
+      sizeFeet: widget.section.hasSizeFeet ? double.tryParse(_sizeFeet.text.trim()) : null,
+      sizeMaleInch: widget.section.hasSizeMaleFemaleInch ? double.tryParse(_sizeMale.text.trim()) : null,
+      sizeFemaleInch: widget.section.hasSizeMaleFemaleInch ? double.tryParse(_sizeFemale.text.trim()) : null,
       imageUrl: _imageUrl,
       quantityTotal: widget.section.hasAvailabilityCount ? qty : null,
       quantityAvailable: widget.section.hasAvailabilityCount ? qty : null,
@@ -82,7 +87,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
     final section = widget.section;
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 700),
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 760),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Form(
@@ -122,18 +127,38 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _price,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Price (RM)'),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Price (RM)', prefixText: 'RM '),
                     ),
                   ],
-                  if (section.hasSizeFeet || section.hasSizeInch) ...[
+                  if (section.hasSizeFeet) ...[
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: _size,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: section.hasSizeFeet ? 'Size (feet)' : 'Size (inch)',
-                      ),
+                      controller: _sizeFeet,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Size (feet)'),
+                    ),
+                  ],
+                  if (section.hasSizeMaleFemaleInch) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _sizeMale,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(labelText: 'Size Male (inch)'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _sizeFemale,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(labelText: 'Size Female (inch)'),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                   if (section.hasAvailabilityCount) ...[

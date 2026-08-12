@@ -6,6 +6,7 @@ import '../../services/booking_service.dart';
 import '../../services/item_service.dart';
 import '../../config/categories_config.dart';
 import '../../config/theme.dart';
+import '../../widgets/image_upload_widget.dart';
 import 'booking_form_screen.dart';
 
 /// Full booking profile (spec section 4) — customer, wedding info,
@@ -23,6 +24,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   BookingModel? _booking;
   List<Map<String, dynamic>> _payments = [];
   List<Map<String, dynamic>> _bookingItems = [];
+  List<Map<String, dynamic>> _notes = [];
   bool _loading = true;
 
   @override
@@ -40,12 +42,93 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         .single();
     final payments = await _service.paymentHistory(widget.bookingId);
     final bookingItems = await _service.fetchBookingItems(widget.bookingId);
+    final notes = await _service.fetchNotes(widget.bookingId);
     setState(() {
       _booking = BookingModel.fromMap(row);
       _payments = payments;
       _bookingItems = bookingItems;
+      _notes = notes;
       _loading = false;
     });
+  }
+
+  Future<void> _deleteBooking() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete booking?'),
+        content: Text(
+          'This will permanently delete the booking for "${_booking!.customerName}" and all its payments, add-ons and notes. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await _service.delete(widget.bookingId);
+      if (mounted) Navigator.pop(context, true);
+    }
+  }
+
+  Future<void> _addNote() async {
+    final contentCtrl = TextEditingController();
+    String? imageUrl;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSB) => AlertDialog(
+          title: const Text('Add Note'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: contentCtrl,
+                  maxLines: 4,
+                  decoration: const InputDecoration(labelText: 'Note'),
+                ),
+                const SizedBox(height: 12),
+                ImageUploadWidget(
+                  folder: 'notes',
+                  onUploaded: (url) => setSB(() => imageUrl = url),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save')),
+          ],
+        ),
+      ),
+    );
+    if (saved == true && contentCtrl.text.trim().isNotEmpty) {
+      await _service.addNote(bookingId: widget.bookingId, content: contentCtrl.text.trim(), imageUrl: imageUrl);
+      _load();
+    }
+  }
+
+  Future<void> _deleteNote(String noteId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete note?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await _service.deleteNote(noteId);
+      _load();
+    }
   }
 
   Future<void> _openAddItemPicker() async {
@@ -94,8 +177,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
               ),
               TextField(
                 controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Amount (RM)'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(labelText: 'Amount (RM)', prefixText: 'RM '),
               ),
             ],
           ),
@@ -134,6 +217,11 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
               );
               if (saved == true) _load();
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            tooltip: 'Delete booking',
+            onPressed: _deleteBooking,
           ),
         ],
       ),
@@ -243,20 +331,73 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (b.notes != null && b.notes!.isNotEmpty)
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Text(b.notes!),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          OutlinedButton.icon(
+                            onPressed: _addNote,
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('Add Note'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      if (b.notes != null && b.notes!.isNotEmpty) ...[
+                        Text(b.notes!, style: TextStyle(color: Colors.grey[700])),
+                        const Divider(height: 24),
                       ],
-                    ),
+                      if (_notes.isEmpty)
+                        Text('No detailed notes yet.', style: TextStyle(color: Colors.grey[600]))
+                      else
+                        for (final n in _notes)
+                          Card(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            color: AppColors.softGrey,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (n['image_url'] != null && (n['image_url'] as String).isNotEmpty)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        n['image_url'],
+                                        height: 160,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(child: Text(n['content'] ?? '')),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                                        onPressed: () => _deleteNote(n['id']),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    '${n['created_at']}'.split('.').first,
+                                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                    ],
                   ),
                 ),
+              ),
             ],
           ),
         ),

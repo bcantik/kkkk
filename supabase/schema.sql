@@ -45,7 +45,8 @@ create table items (
   description text,
   price numeric(10,2),
   size_feet numeric(6,2),         -- used by pelamin (size in feet)
-  size_inch numeric(6,2),         -- used by baju pengantin (size in inch)
+  size_male_inch numeric(6,2),    -- used by baju pengantin (groom/male size)
+  size_female_inch numeric(6,2),  -- used by baju pengantin (bride/female size)
   image_url text,
   quantity_total int,             -- used for Kerusi / Panel style stock
   quantity_available int,         -- decremented by bookings
@@ -241,6 +242,7 @@ create table notes (
   id uuid primary key default uuid_generate_v4(),
   booking_id uuid references bookings(id) on delete cascade,
   content text not null,
+  image_url text,
   created_by uuid references profiles(id),
   created_at timestamptz default now()
 );

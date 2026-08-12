@@ -48,6 +48,27 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
     'preparation', 'wedding_completed', 'completed', 'cancelled',
   ];
 
+  Future<void> _quickDelete(BookingModel b) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete booking?'),
+        content: Text('Remove the booking for "${b.customerName}" permanently? This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && b.id != null) {
+      await _service.delete(b.id!);
+      _load();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -112,9 +133,18 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                     ListTile(
                       title: Text(b.customerName.isEmpty ? 'Booking' : b.customerName),
                       subtitle: Text('${b.weddingDate.toLocal().toString().split(' ').first} · ${b.eventType} · ${b.venueText ?? ''}'),
-                      trailing: Chip(
-                        label: Text(b.bookingStatus.replaceAll('_', ' '), style: const TextStyle(fontSize: 11)),
-                        backgroundColor: AppColors.softGrey,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Chip(
+                            label: Text(b.bookingStatus.replaceAll('_', ' '), style: const TextStyle(fontSize: 11)),
+                            backgroundColor: AppColors.softGrey,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () => _quickDelete(b),
+                          ),
+                        ],
                       ),
                       onTap: () => Navigator.of(context)
                           .push(MaterialPageRoute(builder: (_) => BookingDetailsScreen(bookingId: b.id!)))

@@ -4,7 +4,9 @@ import '../../services/booking_service.dart';
 import '../../config/theme.dart';
 
 /// Appointment management (spec section 5). Types: fitting, pickup,
-/// return, pelamin setup/discussion, wedding day, meeting, reminder, other.
+/// return, pelamin setup/discussion, wedding day, meeting, reminder,
+/// other. New appointments show up immediately on the Booking Calendar
+/// screen since it reads straight from the same `appointments` table.
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
   @override
@@ -41,9 +43,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
   Future<void> _create() async {
     String type = _types.first;
-    final dateCtrl = ValueNotifier<DateTime>(DateTime.now());
-    final timeCtrl = TextEditingController(text: '09:00');
+    DateTime date = DateTime.now();
+    TimeOfDay time = TimeOfDay.now();
     final notesCtrl = TextEditingController();
+    final locationCtrl = TextEditingController();
 
     final ok = await showDialog<bool>(
       context: context,
@@ -53,6 +56,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButtonFormField<String>(
                   initialValue: type,
@@ -60,9 +64,40 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   items: [for (final t in _types) DropdownMenuItem(value: t, child: Text(t.replaceAll('_', ' ')))],
                   onChanged: (v) => setSB(() => type = v!),
                 ),
-                const SizedBox(height: 8),
-                TextField(controller: timeCtrl, decoration: const InputDecoration(labelText: 'Time (HH:mm)')),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.calendar_today, size: 16),
+                        label: Text('${date.toLocal()}'.split(' ').first),
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: date,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2035),
+                          );
+                          if (picked != null) setSB(() => date = picked);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.access_time, size: 16),
+                        label: Text(time.format(context)),
+                        onPressed: () async {
+                          final picked = await showTimePicker(context: context, initialTime: time);
+                          if (picked != null) setSB(() => time = picked);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(controller: locationCtrl, decoration: const InputDecoration(labelText: 'Location')),
+                const SizedBox(height: 12),
                 TextField(controller: notesCtrl, decoration: const InputDecoration(labelText: 'Notes')),
               ],
             ),
@@ -76,13 +111,16 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     );
 
     if (ok == true) {
+      final hh = time.hour.toString().padLeft(2, '0');
+      final mm = time.minute.toString().padLeft(2, '0');
       await _service.createAppointment(AppointmentModel(
         appointmentType: type,
-        appointmentDate: dateCtrl.value,
-        appointmentTime: timeCtrl.text,
-        notes: notesCtrl.text,
+        appointmentDate: date,
+        appointmentTime: '$hh:$mm',
+        location: locationCtrl.text.trim(),
+        notes: notesCtrl.text.trim(),
       ));
-      _load();
+      _load(); // reload here; the Booking Calendar screen re-fetches on its own next visit
     }
   }
 
@@ -100,6 +138,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ElevatedButton.icon(onPressed: _create, icon: const Icon(Icons.add), label: const Text('New Appointment')),
             ],
           ),
+          const SizedBox(height: 4),
+          Text('New appointments appear on the Booking Calendar automatically.', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
           const SizedBox(height: 20),
           if (_loading)
             const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
@@ -113,7 +153,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     ListTile(
                       leading: const Icon(Icons.schedule, color: AppColors.gold),
                       title: Text(a.appointmentType.replaceAll('_', ' ')),
-                      subtitle: Text('${a.appointmentDate.toLocal().toString().split(' ').first} at ${a.appointmentTime}'),
+                      subtitle: Text('${a.appointmentDate.toLocal().toString().split(' ').first} at ${a.appointmentTime}${a.location != null && a.location!.isNotEmpty ? ' · ${a.location}' : ''}'),
                     ),
                 ],
               ),

@@ -50,7 +50,7 @@ class _SearchFilterBarState extends State<SearchFilterBar> {
             controller: _queryCtrl,
             onChanged: (_) => _emit(),
             decoration: const InputDecoration(
-              hintText: 'Search title...',
+              hintText: 'Search...',
               prefixIcon: Icon(Icons.search),
               isDense: true,
             ),
@@ -60,7 +60,7 @@ class _SearchFilterBarState extends State<SearchFilterBar> {
           width: 170,
           child: TextField(
             controller: _priceCtrl,
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (_) => _emit(),
             decoration: const InputDecoration(
               hintText: 'From price (RM)',

@@ -14,7 +14,7 @@ class ItemSection {
   final List<String> subcategories; // optional preset subcategory choices
   final bool hasPrice;
   final bool hasSizeFeet;
-  final bool hasSizeInch;
+  final bool hasSizeMaleFemaleInch; // separate Size Male (inch) / Size Female (inch)
   final bool hasDescription;
   final bool hasAvailabilityCount; // e.g. Kerusi / Panel: "available: 3"
   final bool hasBooleanAvailability; // e.g. Baju: available / not available (date-based)
@@ -24,7 +24,7 @@ class ItemSection {
     this.subcategories = const [],
     this.hasPrice = false,
     this.hasSizeFeet = false,
-    this.hasSizeInch = false,
+    this.hasSizeMaleFemaleInch = false,
     this.hasDescription = false,
     this.hasAvailabilityCount = false,
     this.hasBooleanAvailability = false,
@@ -41,8 +41,10 @@ class PageConfig {
     required this.pageKey,
     required this.title,
     required this.sections,
-    this.hasSearch = false,
-    this.hasFilter = false,
+    // Search + "from price / from size" filtering is now standard on
+    // every catalogue page.
+    this.hasSearch = true,
+    this.hasFilter = true,
   });
 }
 
@@ -73,8 +75,6 @@ class CategoriesConfig {
   static const koleksiPelamin = PageConfig(
     pageKey: 'pelamin',
     title: 'Koleksi Pelamin',
-    hasSearch: true,
-    hasFilter: true,
     sections: [
       ItemSection(category: 'Pelamin Dewan', hasPrice: true, hasSizeFeet: true),
       ItemSection(category: 'Pelamin Khemah', hasPrice: true, hasSizeFeet: true),
@@ -84,20 +84,19 @@ class CategoriesConfig {
   );
 
   // ---------------------------------------------------------------
-  // 3. KOLEKSI BAJU PENGANTIN (search + filter: title, price, size inch —
-  // "From Size". Availability is boolean, computed from bookings ±2 weeks)
+  // 3. KOLEKSI BAJU PENGANTIN (search + filter: title, price, size (male
+  // & female, inch) — "From Size". Availability is boolean, computed
+  // from bookings ±2 weeks)
   // ---------------------------------------------------------------
   static const koleksiBaju = PageConfig(
     pageKey: 'baju_pengantin',
     title: 'Koleksi Baju Pengantin',
-    hasSearch: true,
-    hasFilter: true,
     sections: [
-      ItemSection(category: 'Songket', hasPrice: true, hasSizeInch: true, hasDescription: true, hasBooleanAvailability: true),
-      ItemSection(category: 'Dress/Gaun', hasPrice: true, hasSizeInch: true, hasDescription: true, hasBooleanAvailability: true),
-      ItemSection(category: 'Baju Nikah', hasPrice: true, hasSizeInch: true, hasDescription: true, hasBooleanAvailability: true),
-      ItemSection(category: 'Suit', hasPrice: true, hasSizeInch: true, hasDescription: true, hasBooleanAvailability: true),
-      ItemSection(category: 'Lengha', hasPrice: true, hasSizeInch: true, hasDescription: true, hasBooleanAvailability: true),
+      ItemSection(category: 'Songket', hasPrice: true, hasSizeMaleFemaleInch: true, hasDescription: true, hasBooleanAvailability: true),
+      ItemSection(category: 'Dress/Gaun', hasPrice: true, hasSizeMaleFemaleInch: true, hasDescription: true, hasBooleanAvailability: true),
+      ItemSection(category: 'Baju Nikah', hasPrice: true, hasSizeMaleFemaleInch: true, hasDescription: true, hasBooleanAvailability: true),
+      ItemSection(category: 'Suit', hasPrice: true, hasSizeMaleFemaleInch: true, hasDescription: true, hasBooleanAvailability: true),
+      ItemSection(category: 'Lengha', hasPrice: true, hasSizeMaleFemaleInch: true, hasDescription: true, hasBooleanAvailability: true),
       ItemSection(category: 'Aksesori', hasPrice: true, hasDescription: true, hasBooleanAvailability: true),
     ],
   );
@@ -109,7 +108,7 @@ class CategoriesConfig {
   static const barangPelamin = PageConfig(
     pageKey: 'barang_pelamin',
     title: 'Barang Pelamin',
-    hasSearch: true,
+    hasFilter: false, // no price/size on these — search only
     sections: [
       ItemSection(category: 'Kerusi', hasDescription: true, hasAvailabilityCount: true),
       ItemSection(category: 'Besi/Jet', hasDescription: true),
