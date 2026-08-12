@@ -14,7 +14,7 @@ class SupabaseConfig {
 /// APIs & Services > Credentials > Create OAuth client ID (Web application)
 /// Enable the "Google Calendar API" under APIs & Services > Library.
 class GoogleCalendarConfig {
-  static const String clientId = 'YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com';
+  static const String clientId = '1076797472551-l1f1a81g10vac5ga6lgajbh923em29mv.apps.googleusercontent.com';
   static const List<String> scopes = [
     'https://www.googleapis.com/auth/calendar.events',
     'https://www.googleapis.com/auth/calendar.readonly',

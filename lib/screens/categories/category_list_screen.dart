@@ -67,13 +67,21 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
             i.category.toLowerCase().contains(q);
       }).toList();
     }
-    if (_filters.minPrice != null) {
-      list = list.where((i) => (i.price ?? 0) >= _filters.minPrice!).toList();
+    if (_filters.price != null) {
+      list = list.where((i) => (i.price ?? 0) == _filters.price!).toList();
     }
-    if (_filters.minSize != null) {
+    if (_filters.size != null) {
       list = list.where((i) {
-        final size = i.sizeFeet ?? i.sizeMaleInch ?? i.sizeFemaleInch ?? 0;
-        return size >= _filters.minSize!;
+        final exactSize = _filters.size!;
+        switch (_filters.sizeTarget) {
+          case SizeFilterTarget.male:
+            return i.sizeMaleInch == exactSize;
+          case SizeFilterTarget.female:
+            return i.sizeFemaleInch == exactSize;
+          case SizeFilterTarget.both:
+            return (i.sizeMaleInch != null && i.sizeMaleInch == exactSize) ||
+                (i.sizeFemaleInch != null && i.sizeFemaleInch == exactSize);
+        }
       }).toList();
     }
     return list;
@@ -151,6 +159,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                 if (_config.hasSearch)
                   SearchFilterBar(
                     showSizeFilter: _config.hasFilter && (section.hasSizeFeet || section.hasSizeMaleFemaleInch),
+                    showSizeTarget: section.hasSizeMaleFemaleInch,
                     sizeLabel: section.hasSizeFeet ? 'Size (feet)' : 'Size (inch)',
                     onChanged: (f) => setState(() => _filters = f),
                   ),

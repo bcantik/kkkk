@@ -178,9 +178,11 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
     final visibleDay = _todayOnly ? now : (_selectedDay ?? now);
     final visibleEntries = _entriesFor(visibleDay);
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -318,6 +320,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                 ),
               ),
         ],
+        ),
       ),
     );
   }

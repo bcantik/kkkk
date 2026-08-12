@@ -1,5 +1,6 @@
+import 'package:add_2_calendar/add_2_calendar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/booking_model.dart';
 import '../../models/customer_model.dart';
 import '../../services/booking_service.dart';
@@ -20,8 +21,6 @@ class BookingFormScreen extends StatefulWidget {
 class _BookingFormScreenState extends State<BookingFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _service = BookingService();
-  final _client = Supabase.instance.client;
-
   late DateTime _date;
   String _eventType = 'nikah';
   String _bookingStatus = 'new_inquiry';
@@ -41,12 +40,11 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   final _discount = TextEditingController(text: '0');
   final _depositRequired = TextEditingController(text: '0');
   final _notes = TextEditingController();
-
-  CustomerModel? _matchedCustomer;
   bool _saving = false;
   bool _checkingConflict = false;
   String? _conflictWarning;
   bool _syncToGoogle = false;
+  bool _syncToPhoneCalendar = false;
   final _googleCalendar = GoogleCalendarService();
 
   static const _eventTypes = ['tunang', 'nikah', 'sanding', 'aqiqah', 'majlis_lain'];
@@ -56,10 +54,16 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   ];
   static const _paymentStatuses = ['unpaid', 'deposit_paid', 'partially_paid', 'fully_paid', 'overdue'];
 
+  bool get _supportsPhoneCalendar {
+    return !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+  }
+
   @override
   void initState() {
     super.initState();
     _date = widget.existing?.weddingDate ?? widget.initialDate ?? DateTime.now();
+    _syncToPhoneCalendar = _supportsPhoneCalendar;
     final e = widget.existing;
     if (e != null) {
       _customerName.text = e.customerName;
@@ -172,6 +176,23 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         }
       }
 
+      if (_syncToPhoneCalendar && saved.id != null) {
+        try {
+          await _saveToPhoneCalendar(
+            title: '${saved.eventType.toUpperCase()} — ${_customerName.text.trim()}',
+            date: _date,
+            description: 'Venue: ${_venue.text.trim()}\nGuests: ${_guests.text.trim()}\nNotes: ${_notes.text.trim()}',
+            location: _venue.text.trim(),
+          );
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Booking saved, but phone calendar sync failed: $e')),
+            );
+          }
+        }
+      }
+
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
@@ -180,6 +201,23 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  Future<void> _saveToPhoneCalendar({
+    required String title,
+    required DateTime date,
+    required String description,
+    String? location,
+  }) async {
+    final event = Event(
+      title: title,
+      description: description,
+      location: location,
+      startDate: DateTime(date.year, date.month, date.day),
+      endDate: DateTime(date.year, date.month, date.day + 1),
+      allDay: true,
+    );
+    await Add2Calendar.addEvent2Cal(event);
   }
 
   @override
@@ -291,6 +329,15 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 const _SectionLabel('Notes'),
                 TextFormField(controller: _notes, maxLines: 4, decoration: const InputDecoration(labelText: 'Detailed notes')),
                 const SizedBox(height: 12),
+                if (_supportsPhoneCalendar)
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: _syncToPhoneCalendar,
+                    onChanged: (v) => setState(() => _syncToPhoneCalendar = v ?? false),
+                    title: const Text('Save booking to phone calendar'),
+                    subtitle: const Text('No Google sign-in required'),
+                  ),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
