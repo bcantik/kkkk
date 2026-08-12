@@ -23,11 +23,11 @@ import 'screens/booking/reports_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Fill in lib/config/supabase_config.dart with your project URL + anon key
+  // Fill in lib/config/supabase_config.dart with your project URL + publishable key
   // before running. See README.md for the full setup checklist.
   await Supabase.initialize(
     url: SupabaseConfig.url,
-    anonKey: SupabaseConfig.anonKey,
+    publishableKey: SupabaseConfig.publishableKey,
   );
 
   await NotificationService().init();
