@@ -51,6 +51,12 @@ class _CalEntry {
         return AppColors.eventSanding;
       case 'aqiqah':
         return AppColors.eventAqiqah;
+      case 'makeup':
+        return AppColors.eventMakeup;
+      case 'sewa_baju':
+        return AppColors.eventSewaBaju;
+      case 'sewa_aksesori':
+        return AppColors.eventSewaAksesori;
       default:
         return AppColors.eventMajlisLain;
     }
@@ -291,6 +297,9 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
               _LegendDot(color: AppColors.eventSanding, label: 'Sanding'),
               _LegendDot(color: AppColors.eventAqiqah, label: 'Aqiqah'),
               _LegendDot(color: AppColors.eventMajlisLain, label: 'Majlis Lain'),
+              _LegendDot(color: AppColors.eventMakeup, label: 'Makeup'),
+              _LegendDot(color: AppColors.eventSewaBaju, label: 'Sewa Baju'),
+              _LegendDot(color: AppColors.eventSewaAksesori, label: 'Sewa Aksesori'),
             ],
           ),
           const SizedBox(height: 20),

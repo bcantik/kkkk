@@ -4,7 +4,7 @@ class BookingModel {
   final String customerName; // joined display field
   final String? customerPhone;
   final DateTime weddingDate;
-  final String eventType; // tunang | nikah | sanding | aqiqah | majlis_lain
+  final String eventType; // tunang | nikah | sanding | aqiqah | majlis_lain | makeup | sewa_baju | sewa_aksesori
   final String? venueId;
   final String? venueText;
   final int? expectedGuests;

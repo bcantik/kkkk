@@ -66,6 +66,8 @@ class CategoriesConfig {
       ItemSection(category: 'Set Candy Wall', subcategories: ['Sweet Basic', 'Sweet Classic', 'Sweet Deluxe'], hasPrice: true, hasDescription: true),
       ItemSection(category: 'Set Dewan IPD', hasPrice: true, hasDescription: true),
       ItemSection(category: 'MUA', subcategories: ['Tunang', 'Nikah', 'Sanding'], hasPrice: true, hasDescription: true),
+      ItemSection(category: 'Cake', hasPrice: true, hasDescription: true),
+      ItemSection(category: 'Henna', hasPrice: true, hasDescription: true),
     ],
   );
 

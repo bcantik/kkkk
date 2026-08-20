@@ -87,7 +87,10 @@ create index idx_customers_phone on customers(phone);
 -- ---------------------------------------------------------------------
 -- 6. BOOKINGS
 -- ---------------------------------------------------------------------
-create type event_type as enum ('tunang','nikah','sanding','aqiqah','majlis_lain');
+create type event_type as enum (
+  'tunang','nikah','sanding','aqiqah','majlis_lain',
+  'makeup','sewa_baju','sewa_aksesori'
+);
 create type booking_status as enum (
   'new_inquiry','quotation_sent','booking_confirmed','deposit_paid',
   'preparation','wedding_completed','completed','cancelled'
@@ -166,7 +169,7 @@ create type appointment_type as enum (
 create table appointments (
   id uuid primary key default uuid_generate_v4(),
   booking_id uuid references bookings(id) on delete cascade,
-  customer_id uuid references customers(id),
+  customer_id uuid references customers(id) on delete set null,
   appointment_type appointment_type not null,
   appointment_date date not null,
   appointment_time time not null,
@@ -188,7 +191,7 @@ create table dress_rentals (
   id uuid primary key default uuid_generate_v4(),
   item_id uuid references items(id) on delete cascade,   -- the dress (baju_pengantin item)
   booking_id uuid references bookings(id) on delete cascade,
-  customer_id uuid references customers(id),
+  customer_id uuid references customers(id) on delete set null,
   status dress_status not null default 'reserved',
   fitting_date date,
   pickup_date date,

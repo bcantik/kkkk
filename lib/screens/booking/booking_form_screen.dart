@@ -47,7 +47,10 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   bool _syncToPhoneCalendar = false;
   final _googleCalendar = GoogleCalendarService();
 
-  static const _eventTypes = ['tunang', 'nikah', 'sanding', 'aqiqah', 'majlis_lain'];
+  static const _eventTypes = [
+    'tunang', 'nikah', 'sanding', 'aqiqah', 'majlis_lain',
+    'makeup', 'sewa_baju', 'sewa_aksesori',
+  ];
   static const _bookingStatuses = [
     'new_inquiry', 'quotation_sent', 'booking_confirmed', 'deposit_paid',
     'preparation', 'wedding_completed', 'completed', 'cancelled',
@@ -270,7 +273,13 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                     child: DropdownButtonFormField<String>(
                       initialValue: _eventType,
                       decoration: const InputDecoration(labelText: 'Event type'),
-                      items: [for (final t in _eventTypes) DropdownMenuItem(value: t, child: Text(t))],
+                      items: [
+                        for (final t in _eventTypes)
+                          DropdownMenuItem(
+                            value: t,
+                            child: Text(t.replaceAll('_', ' ')),
+                          ),
+                      ],
                       onChanged: (v) => setState(() => _eventType = v!),
                     ),
                   ),

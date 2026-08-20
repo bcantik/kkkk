@@ -41,18 +41,21 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     }
   }
 
-  Future<void> _create() async {
-    String type = _types.first;
-    DateTime date = DateTime.now();
-    TimeOfDay time = TimeOfDay.now();
-    final notesCtrl = TextEditingController();
-    final locationCtrl = TextEditingController();
+  Future<void> _create({AppointmentModel? existing}) async {
+    String type = existing?.appointmentType ?? _types.first;
+    DateTime date = existing?.appointmentDate ?? DateTime.now();
+    final timeParts = existing?.appointmentTime.split(':');
+    TimeOfDay time = timeParts?.length == 2
+        ? TimeOfDay(hour: int.parse(timeParts![0]), minute: int.parse(timeParts[1]))
+        : TimeOfDay.now();
+    final notesCtrl = TextEditingController(text: existing?.notes ?? '');
+    final locationCtrl = TextEditingController(text: existing?.location ?? '');
 
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setSB) => AlertDialog(
-          title: const Text('New Appointment'),
+          title: Text(existing == null ? 'New Appointment' : 'Edit Appointment'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -113,14 +116,54 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     if (ok == true) {
       final hh = time.hour.toString().padLeft(2, '0');
       final mm = time.minute.toString().padLeft(2, '0');
-      await _service.createAppointment(AppointmentModel(
+      final appointment = AppointmentModel(
         appointmentType: type,
         appointmentDate: date,
         appointmentTime: '$hh:$mm',
         location: locationCtrl.text.trim(),
         notes: notesCtrl.text.trim(),
-      ));
+        bookingId: existing?.bookingId,
+        customerId: existing?.customerId,
+        staffAssigned: existing?.staffAssigned,
+        reminderOffsetDays: existing?.reminderOffsetDays ?? 1,
+      );
+      if (existing?.id == null) {
+        await _service.createAppointment(appointment);
+      } else {
+        await _service.updateAppointment(existing!.id!, appointment);
+      }
       _load(); // reload here; the Booking Calendar screen re-fetches on its own next visit
+    }
+  }
+
+  Future<void> _delete(AppointmentModel appointment) async {
+    if (appointment.id == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete appointment?'),
+        content: const Text('This appointment will be permanently deleted.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton.tonalIcon(
+            onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.delete_outline),
+            label: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await _service.deleteAppointment(appointment.id!);
+      await _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment deleted.')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not delete appointment: $e')));
+      }
     }
   }
 
@@ -154,6 +197,21 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       leading: const Icon(Icons.schedule, color: AppColors.gold),
                       title: Text(a.appointmentType.replaceAll('_', ' ')),
                       subtitle: Text('${a.appointmentDate.toLocal().toString().split(' ').first} at ${a.appointmentTime}${a.location != null && a.location!.isNotEmpty ? ' · ${a.location}' : ''}'),
+                      trailing: Wrap(
+                        spacing: 4,
+                        children: [
+                          IconButton(
+                            tooltip: 'Edit appointment',
+                            icon: const Icon(Icons.edit_outlined),
+                            onPressed: () => _create(existing: a),
+                          ),
+                          IconButton(
+                            tooltip: 'Delete appointment',
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () => _delete(a),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ),

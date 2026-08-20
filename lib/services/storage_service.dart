@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,7 +28,8 @@ class StorageService {
     if (result == null || result.files.isEmpty) return null;
     final f = result.files.first;
     if (f.bytes != null) {
-      return XFile.fromData(f.bytes!, name: f.name, mimeType: 'image/${f.extension}');
+      return XFile.fromData(f.bytes!,
+          name: f.name, mimeType: 'image/${f.extension}');
     } else if (f.path != null) {
       return XFile(f.path!);
     }
@@ -46,6 +46,8 @@ class StorageService {
           bytes,
           fileOptions: const FileOptions(upsert: true),
         );
-    return _client.storage.from(SupabaseConfig.itemImagesBucket).getPublicUrl(path);
+    return _client.storage
+        .from(SupabaseConfig.itemImagesBucket)
+        .getPublicUrl(path);
   }
 }

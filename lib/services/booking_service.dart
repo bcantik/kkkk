@@ -81,6 +81,20 @@ class BookingService {
     return CustomerModel.fromMap(row);
   }
 
+  Future<CustomerModel> updateCustomer(String id, CustomerModel customer) async {
+    final row = await _client
+        .from('customers')
+        .update(customer.toMap())
+        .eq('id', id)
+        .select()
+        .single();
+    return CustomerModel.fromMap(row);
+  }
+
+  Future<void> deleteCustomer(String id) async {
+    await _client.from('customers').delete().eq('id', id);
+  }
+
   // ---- Payments ----
   Future<void> recordPayment({
     required String bookingId,
@@ -124,6 +138,14 @@ class BookingService {
 
   Future<void> createAppointment(AppointmentModel a) async {
     await _client.from('appointments').insert(a.toMap());
+  }
+
+  Future<void> updateAppointment(String id, AppointmentModel appointment) async {
+    await _client.from('appointments').update(appointment.toMap()).eq('id', id);
+  }
+
+  Future<void> deleteAppointment(String id) async {
+    await _client.from('appointments').delete().eq('id', id);
   }
 
   // ---- Booking Add-ons (booking_items) ----

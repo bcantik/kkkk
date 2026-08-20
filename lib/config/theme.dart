@@ -10,20 +10,22 @@ class AppColors {
   static const softGrey = Color(0xFFF1EEE7);
 
   // Booking calendar category colors (per spec section 14)
-  static const eventWedding = Color(0xFF2E7D32);   // green
-  static const eventFitting = Color(0xFF1565C0);   // blue
-  static const eventMakeup = Color(0xFFD81B60);    // pink
-  static const eventPelamin = Color(0xFF6A1B9A);   // purple
-  static const eventPayment = Color(0xFFEF6C00);   // orange
-  static const eventMeeting = Color(0xFFF9A825);   // yellow
-  static const eventOther = Color(0xFF757575);     // grey
+  static const eventWedding = Color(0xFF2E7D32); // green
+  static const eventFitting = Color(0xFF1565C0); // blue
+  static const eventMakeup = Color(0xFFD81B60); // pink
+  static const eventPelamin = Color(0xFF6A1B9A); // purple
+  static const eventPayment = Color(0xFFEF6C00); // orange
+  static const eventMeeting = Color(0xFFF9A825); // yellow
+  static const eventOther = Color(0xFF757575); // grey
 
   // Booking calendar colors BY EVENT TYPE (tunang/nikah/sanding/etc.)
-  static const eventTunang = Color(0xFFAD1457);      // pink/magenta
-  static const eventNikah = Color(0xFFC62828);       // red
-  static const eventSanding = Color(0xFF1565C0);     // blue
-  static const eventAqiqah = Color(0xFF2E7D32);      // green
-  static const eventMajlisLain = Color(0xFF6D4C41);  // brown
+  static const eventTunang = Color(0xFFAD1457); // pink/magenta
+  static const eventNikah = Color(0xFFC62828); // red
+  static const eventSanding = Color(0xFF1565C0); // blue
+  static const eventAqiqah = Color(0xFF2E7D32); // green
+  static const eventMajlisLain = Color(0xFF6D4C41); // brown
+  static const eventSewaBaju = Color(0xFF00838F); // teal
+  static const eventSewaAksesori = Color(0xFF7B1FA2); // purple
 }
 
 class AppTheme {
@@ -64,8 +66,10 @@ class AppTheme {
           backgroundColor: AppColors.black,
           foregroundColor: AppColors.goldLight,
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.3),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          textStyle:
+              const TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.3),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -73,13 +77,15 @@ class AppTheme {
           foregroundColor: AppColors.black,
           side: const BorderSide(color: AppColors.gold, width: 1.4),
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.softGrey),
