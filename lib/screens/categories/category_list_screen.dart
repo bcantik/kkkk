@@ -70,17 +70,32 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
     if (_filters.price != null) {
       list = list.where((i) => (i.price ?? 0) == _filters.price!).toList();
     }
-    if (_filters.size != null) {
+    if (_filters.sizeMin != null || _filters.sizeMax != null) {
+      final min = _filters.sizeMin;
+      final max = _filters.sizeMax;
       list = list.where((i) {
-        final exactSize = _filters.size!;
+        bool matchesRange(double v) {
+          if (min != null && v < min) return false;
+          if (max != null && v > max) return false;
+          return true;
+        }
+
+        // Prefer explicit feet value when present (pages with sizeFeet).
+        if (i.sizeFeet != null) {
+          return matchesRange(i.sizeFeet!);
+        }
+
         switch (_filters.sizeTarget) {
           case SizeFilterTarget.male:
-            return i.sizeMaleInch == exactSize;
+            return i.sizeMaleInch != null && matchesRange(i.sizeMaleInch!);
           case SizeFilterTarget.female:
-            return i.sizeFemaleInch == exactSize;
+            return i.sizeFemaleInch != null && matchesRange(i.sizeFemaleInch!);
           case SizeFilterTarget.both:
-            return (i.sizeMaleInch != null && i.sizeMaleInch == exactSize) ||
-                (i.sizeFemaleInch != null && i.sizeFemaleInch == exactSize);
+            final maleOk =
+                i.sizeMaleInch != null && matchesRange(i.sizeMaleInch!);
+            final femaleOk =
+                i.sizeFemaleInch != null && matchesRange(i.sizeFemaleInch!);
+            return maleOk || femaleOk;
         }
       }).toList();
     }
@@ -90,10 +105,12 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
   bool get _isStaff => _role == AppRole.staff || _role == AppRole.admin;
 
   Future<void> _openForm({ItemModel? existing}) async {
-    final section = _config.sections.firstWhere((s) => s.category == _activeCategory);
+    final section =
+        _config.sections.firstWhere((s) => s.category == _activeCategory);
     final result = await showDialog<bool>(
       context: context,
-      builder: (_) => ItemFormDialog(pageKey: widget.pageKey, section: section, existing: existing),
+      builder: (_) => ItemFormDialog(
+          pageKey: widget.pageKey, section: section, existing: existing),
     );
     if (result == true) _load();
   }
@@ -105,8 +122,12 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
         title: const Text('Delete item?'),
         content: Text('Remove "${item.title}" permanently?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete')),
         ],
       ),
     );
@@ -118,7 +139,8 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final section = _config.sections.firstWhere((s) => s.category == _activeCategory);
+    final section =
+        _config.sections.firstWhere((s) => s.category == _activeCategory);
     return Scaffold(
       appBar: KKKKTopBar(isStaffLoggedIn: _role != AppRole.guest),
       floatingActionButton: _isStaff
@@ -137,9 +159,12 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_config.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                Text(_config.title,
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                Text('${_filtered.length} items', style: TextStyle(color: Colors.grey[600])),
+                Text('${_filtered.length} items',
+                    style: TextStyle(color: Colors.grey[600])),
                 const SizedBox(height: 16),
                 // Category chips (subsections within the page)
                 Wrap(
@@ -151,16 +176,19 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                         label: Text(s.category),
                         selected: _activeCategory == s.category,
                         selectedColor: AppColors.gold,
-                        onSelected: (_) => setState(() => _activeCategory = s.category),
+                        onSelected: (_) =>
+                            setState(() => _activeCategory = s.category),
                       ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 if (_config.hasSearch)
                   SearchFilterBar(
-                    showSizeFilter: _config.hasFilter && (section.hasSizeFeet || section.hasSizeMaleFemaleInch),
+                    showSizeFilter: _config.hasFilter &&
+                        (section.hasSizeFeet || section.hasSizeMaleFemaleInch),
                     showSizeTarget: section.hasSizeMaleFemaleInch,
-                    sizeLabel: section.hasSizeFeet ? 'Size (feet)' : 'Size (inch)',
+                    sizeLabel:
+                        section.hasSizeFeet ? 'Size (feet)' : 'Size (inch)',
                     onChanged: (f) => setState(() => _filters = f),
                   ),
                 const SizedBox(height: 20),
@@ -175,9 +203,11 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+                          Icon(Icons.inbox_outlined,
+                              size: 48, color: Colors.grey[400]),
                           const SizedBox(height: 8),
-                          Text('No items yet', style: TextStyle(color: Colors.grey[600])),
+                          Text('No items yet',
+                              style: TextStyle(color: Colors.grey[600])),
                         ],
                       ),
                     ),
